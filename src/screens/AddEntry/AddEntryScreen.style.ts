@@ -17,15 +17,13 @@ export const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
-  cameraTopBar: {
-    paddingTop: Platform.OS === 'ios' ? 56 : 20,
-    paddingHorizontal: 16,
-  },
   cameraBackBtn: {
-    alignSelf: 'flex-start',
-    padding: 10,
-    borderRadius: 22,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.15)',
   },
   cameraControls: {
     flexDirection: 'row',
