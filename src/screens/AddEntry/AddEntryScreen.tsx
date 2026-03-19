@@ -11,7 +11,6 @@ import {
 import Feather from '@expo/vector-icons/Feather';
 import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as Location from 'expo-location';
-import * as Notifications from 'expo-notifications';
 import { useFocusEffect } from 'expo-router';
 
 import { useEntries } from '@/context/EntriesContext';
@@ -20,15 +19,6 @@ import { Colors } from '@/constants/theme';
 import { TravelEntry } from '@/types';
 import { styles } from './AddEntryScreen.style';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
 
 type ScreenState = 'idle' | 'camera' | 'preview';
 
@@ -47,7 +37,6 @@ export default function AddEntryScreen() {
 
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | null>(null);
-  const [notificationPermission, setNotificationPermission] = useState<Notifications.PermissionStatus | null>(null);
 
   const cameraRef = useRef<CameraView>(null);
 
@@ -66,8 +55,6 @@ export default function AddEntryScreen() {
       const locPerm = await Location.requestForegroundPermissionsAsync();
       setLocationPermission(locPerm.status);
 
-      const notifPerm = await Notifications.requestPermissionsAsync();
-      setNotificationPermission(notifPerm.status);
     })();
   }, []);
 
@@ -187,22 +174,6 @@ export default function AddEntryScreen() {
     setScreenState('camera');
   }, []);
 
-  const sendSaveNotification = useCallback(async (entryAddress: string) => {
-    if (notificationPermission !== Notifications.PermissionStatus.GRANTED) {
-      const { status } = await Notifications.requestPermissionsAsync();
-      setNotificationPermission(status);
-      if (status !== Notifications.PermissionStatus.GRANTED) return;
-    }
-
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: '✈️ Travel Entry Saved!',
-        body: `Your travel memory at "${entryAddress}" has been added to your diary.`,
-        sound: true,
-      },
-      trigger: null,
-    });
-  }, [notificationPermission]);
 
   const handleSave = useCallback(async () => {
     if (!capturedImageUri) {
@@ -251,7 +222,6 @@ export default function AddEntryScreen() {
       };
 
       await addEntry(newEntry);
-      await sendSaveNotification(resolvedAddress);
 
       resetForm();
       Alert.alert('Saved!', 'Your travel entry has been added to your diary.');
@@ -272,7 +242,7 @@ export default function AddEntryScreen() {
     return (
       <View style={styles.cameraContainer}>
         <CameraView ref={cameraRef} style={styles.camera} facing={cameraFacing}>
-          <View style={styles.cameraTopBar}>
+          <View style={styles.cameraControls}>
             <TouchableOpacity
               style={styles.cameraBackBtn}
               onPress={() => setScreenState('idle')}
@@ -280,10 +250,6 @@ export default function AddEntryScreen() {
             >
               <Feather name="arrow-left" size={22} color="#FFFFFF" />
             </TouchableOpacity>
-          </View>
-
-          <View style={styles.cameraControls}>
-            <View style={styles.cameraActionBtn} />
 
             <TouchableOpacity
               style={styles.captureBtn}
@@ -396,11 +362,6 @@ export default function AddEntryScreen() {
         <PermissionRow
           label="Location"
           granted={locationPermission === Location.PermissionStatus.GRANTED}
-          colors={colors}
-        />
-        <PermissionRow
-          label="Notifications"
-          granted={notificationPermission === Notifications.PermissionStatus.GRANTED}
           colors={colors}
         />
       </View>
